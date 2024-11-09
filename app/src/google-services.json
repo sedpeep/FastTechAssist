@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "412586863685",
+    "project_id": "fast-tech-assist",
+    "storage_bucket": "fast-tech-assist.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:412586863685:android:1448ee7749f3985e16472c",
+        "android_client_info": {
+          "package_name": "com.example.fasttechassist"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFONuCSg5JxdCTXpjq-cOD7dmZ62mAZEI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
