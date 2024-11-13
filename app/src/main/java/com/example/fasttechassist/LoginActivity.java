@@ -12,7 +12,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,28 +21,36 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.fasttechassist.database.UserDAO;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity implements LoginCallback {
     private EditText emailInput, passwordInput;
     private RadioGroup roleRadioGroup;
     private Button loginButton;
     private CheckBox rememberMeCheckbox;
     private TextView signupLink;
-    private FirebaseAuth auth;
-    private FirebaseFirestore db;
     private UserDAO userDAO;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        // Initialize Firebase Firestore and UserDAO
+        db = FirebaseFirestore.getInstance();
+        userDAO = new UserDAO(this);
+
+        // Check if the user is already logged in
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            // If the user is already logged in, navigate based on their role
+            navigateToDashboardBasedOnRole(currentUser.getUid());
+            return; // Exit onCreate to prevent re-initializing login UI
+        }
 
         // Initialize views
         emailInput = findViewById(R.id.loginEmail);
@@ -53,37 +60,20 @@ public class LoginActivity extends AppCompatActivity {
         loginButton = findViewById(R.id.loginButton);
         signupLink = findViewById(R.id.signupLink);
 
-        //Making Sign Up underlined and clickable
+        // Set up the clickable signup link
         String text = "Don't have an account? Sign Up";
         SpannableString spannableString = new SpannableString(text);
-
         int startIndex = text.indexOf("Sign Up");
-        int endIndex = startIndex +"Sign Up".length();
-        spannableString.setSpan(new UnderlineSpan(),startIndex,endIndex,SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        // Make signup clickable
-        ClickableSpan clickableSpan = new ClickableSpan() {
+        int endIndex = startIndex + "Sign Up".length();
+        spannableString.setSpan(new UnderlineSpan(), startIndex, endIndex, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE);
+        spannableString.setSpan(new ClickableSpan() {
             @Override
             public void onClick(@NonNull View view) {
-                Intent intent = new Intent(LoginActivity.this, SignupActivity.class);
-                startActivity(intent);
+                startActivity(new Intent(LoginActivity.this, SignupActivity.class));
             }
-        };
-        spannableString.setSpan(clickableSpan,startIndex,endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         signupLink.setText(spannableString);
         signupLink.setMovementMethod(LinkMovementMethod.getInstance());
-
-
-        // Initialize Firebase Authentication and Firestore
-        auth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
-        userDAO = new UserDAO(this);
-
-        // Check if the user is already logged in
-        FirebaseUser currentUser = auth.getCurrentUser();
-        if (currentUser != null) {
-            navigateToDashboardBasedOnRole(currentUser.getUid());
-        }
 
         loginButton.setOnClickListener(v -> {
             String email = emailInput.getText().toString().trim();
@@ -94,27 +84,24 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            // Log in user
-            loginUser(email, password);
+            // Call loginUser from UserDAO
+            userDAO.loginUser(email, password, this);
         });
     }
 
-    private void loginUser(String email, String password) {
-        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    FirebaseUser user = auth.getCurrentUser();
-                    if (user != null) {
-                        navigateToDashboardBasedOnRole(user.getUid());
-                    }
-                } else {
-                    showAlertDialog("Login Error", "Invalid Credentials! Please try again");
-                }
-            }
-        });
+    // Callback methods for login
+    @Override
+    public void onSuccess(FirebaseUser user) {
+        navigateToDashboardBasedOnRole(user.getUid());
     }
 
+
+    @Override
+    public void onFailure(String errorMessage) {
+        showAlertDialog("Login Error", errorMessage);
+    }
+
+    // Navigate based on user role
     private void navigateToDashboardBasedOnRole(String userId) {
         db.collection("users").document(userId).get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -130,7 +117,7 @@ public class LoginActivity extends AppCompatActivity {
                                 startActivity(new Intent(LoginActivity.this, TechDashboard.class));
                                 break;
                             case "Faculty":
-                                startActivity(new Intent(LoginActivity.this, FacultyDashboard.class));
+                                startActivity(new Intent(LoginActivity.this, FacultyActivity.class));
                                 break;
                             default:
                                 showAlertDialog("Error", "Invalid role. Please contact support.");
@@ -138,13 +125,13 @@ public class LoginActivity extends AppCompatActivity {
                         }
                         finish();
                     } else {
-                        showAlertDialog("Error", "User role not found");
+                        showAlertDialog("Error", "User role not found in the database.");
                     }
                 } else {
-                    showAlertDialog("Error", "User data not found");
+                    showAlertDialog("Error", "User data not found in the database.");
                 }
             } else {
-                showAlertDialog("Error", "Failed to retrieve user role: " + task.getException().getMessage());
+                showAlertDialog("Error", "Failed to retrieve user role: " + (task.getException() != null ? task.getException().getMessage() : "Unknown error"));
             }
         });
     }

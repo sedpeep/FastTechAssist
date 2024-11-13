@@ -2,10 +2,12 @@ package com.example.fasttechassist.database;
 
 import android.content.Context;
 
+import com.example.fasttechassist.LoginCallback;
 import com.example.fasttechassist.SignupCallback;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -78,10 +80,25 @@ public class UserDAO {
                 .addOnFailureListener(e -> callback.onFailure("Failed to save user data: " + e.getMessage()));
     }
 
-    // Sign in existing user
-    public void loginUser(String email, String password, OnCompleteListener<AuthResult> onCompleteListener) {
-        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(onCompleteListener);
+    // Login User function in DAO
+    public void loginUser(String email, String password, LoginCallback callback) {
+        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(Task<AuthResult> task) {
+                if (task.isSuccessful()) {
+                    FirebaseUser user = auth.getCurrentUser();
+                    if (user != null) {
+                        callback.onSuccess(user);
+                    } else {
+                        callback.onFailure("User not found after login.");
+                    }
+                } else {
+                    callback.onFailure("Invalid Credentials! Please try again.");
+                }
+            }
+        });
     }
+
 
     // Retrieve user role from Firestore
     public void getUserRole(String userId, OnSuccessListener<String> onSuccessListener, OnFailureListener onFailureListener) {

@@ -27,6 +27,8 @@
             android:exported="false" />
         <activity android:name=".SignupActivity"
             android:exported="false"/>
+        <activity android:name=".FacultyActivity"
+            android:exported="false"/>
 
         <activity
             android:name=".SplashActivity"
@@ -37,7 +39,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.example.fasttechassist.SuccessMessages" />
+
 
         <meta-data
             android:name="preloaded_fonts"

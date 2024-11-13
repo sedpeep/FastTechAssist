@@ -2,8 +2,25 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="blue1">#1c9be4</color>
-    <color name="blue2">#183e95</color>
+
     <color name="green_aqua">#64ebb6</color>
     <color name="grey">#A6A6A6</color>
+
+        <!-- Primary Blue Colors -->
+        <color name="blue1">#1976D2</color> <!-- Main blue (medium) -->
+        <color name="blue2">#1565C0</color> <!-- Darker blue (for headers) -->
+        <color name="blue3">#1E88E5</color> <!-- Lighter accent blue -->
+        <color name="blue4">#42A5F5</color> <!-- Lighter shade (button highlights) -->
+        <color name="blue5">#BBDEFB</color> <!-- Lightest blue (backgrounds) -->
+
+        <!-- Complementary Colors for Contrast -->
+        <color name="blue_dark_text">#0D47A1</color> <!-- Dark text color for blue backgrounds -->
+        <color name="blue_light_text">#E3F2FD</color> <!-- Light text color for dark blue backgrounds -->
+
+        <!-- Additional Blues for Depth and Variety -->
+        <color name="blue_primary_variant">#1565C0</color> <!-- Slightly darker for primary elements -->
+        <color name="blue_secondary">#2196F3</color> <!-- Secondary blue (e.g., for buttons) -->
+        <color name="blue_accent">#82B1FF</color> <!-- Accent color for attention-grabbing elements -->
+
+
 </resources>

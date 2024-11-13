@@ -4,9 +4,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.UnderlineSpan;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -79,13 +81,49 @@ public class SignupActivity extends AppCompatActivity implements SignupCallback 
         String number = numberInput.getText().toString().trim();
         String role = getSelectedRole();
 
-        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || number.isEmpty() || role.isEmpty()) {
-            Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
-            return;
+        // Validate input fields
+        if (!validateName(name) | !validateEmail(email) | !validatePassword(password) | !validateNumber(number) | role.isEmpty()) {
+            return; // Exit if any validation fails
         }
 
         // Use UserDAO to register user
         userDAO.registerUser(name, email, password, number, role, this);
+    }
+
+    private boolean validateName(String name) {
+        if (TextUtils.isEmpty(name) || name.length() < 3) {
+            nameInput.setError("Please write at least 3 characters");
+            return false;
+        }
+        nameInput.setError(null);
+        return true;
+    }
+
+    private boolean validateEmail(String email) {
+        if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailInput.setError("Please enter a valid email address");
+            return false;
+        }
+        emailInput.setError(null);
+        return true;
+    }
+
+    private boolean validatePassword(String password) {
+        if (TextUtils.isEmpty(password) || password.length() < 8 || !password.matches(".*[A-Z].*") || !password.matches(".*[!@#$%^&*].*")) {
+            passwordInput.setError("Password must be at least 8 characters with a capital letter and a special character");
+            return false;
+        }
+        passwordInput.setError(null);
+        return true;
+    }
+
+    private boolean validateNumber(String number) {
+        if (TextUtils.isEmpty(number) || number.length() < 10) {
+            numberInput.setError("Please enter a valid phone number");
+            return false;
+        }
+        numberInput.setError(null);
+        return true;
     }
 
     private String getSelectedRole() {
@@ -99,7 +137,7 @@ public class SignupActivity extends AppCompatActivity implements SignupCallback 
     public void onSuccess(String message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Account Created")
-                .setMessage(message)
+                .setMessage("Your account has been created successfully. You can now log in.")
                 .setPositiveButton("OK", (dialog, which) -> {
                     startActivity(new Intent(SignupActivity.this, LoginActivity.class));
                     finish();
@@ -109,6 +147,10 @@ public class SignupActivity extends AppCompatActivity implements SignupCallback 
 
     @Override
     public void onFailure(String errorMessage) {
-        Toast.makeText(SignupActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Signup Error")
+                .setMessage(errorMessage)
+                .setPositiveButton("OK", null)
+                .show();
     }
 }
